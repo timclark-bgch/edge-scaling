@@ -1,0 +1,23 @@
+syntax = "proto3";
+package honeycomb.messages;
+
+option java_package = "honeycomb.messages";
+option java_outer_classname = "MessageProtos";
+
+message Connect {
+    string device = 1;
+    repeated string managed = 2;
+}
+
+message Disconnect {
+    string device = 1;
+}
+
+message Command {
+    string device = 1;
+}
+
+message Report {
+    string device = 1;
+    string message = 2;
+}
