@@ -79,14 +79,15 @@ final class ReconnectingClient {
     }
 
     boolean send(final String topic, final byte[] payload, final int qos, final boolean retain) {
-        try {
-            client.publish(topic, payload, qos, retain);
-            return true;
-        } catch (MqttException e) {
-
-            e.printStackTrace();
-            return false;
-        }
+//        try {
+//            client.publish(topic, payload, qos, retain);
+//            return true;
+//        } catch (MqttException e) {
+//
+//            e.printStackTrace();
+//            return false;
+//        }
+        return false;
     }
 
     void disconnect() {
