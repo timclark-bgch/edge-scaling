@@ -22,15 +22,13 @@ public class MqttDevicePublisherTest {
     public void checkPublishing() throws IOException, MqttException {
         final MqttDefaultFilePersistence persistence = new MqttDefaultFilePersistence(folder.newFolder().getAbsolutePath());
 
-        final MessageHandler handler = (topic, message) -> System.out.printf("%s: %s\n", topic, message.getPayload().length);
-        final MessageHandler noopHandler = (topic, message) -> { };
-
         final String broker = "tcp://localhost:1883";
-        final ReconnectingClient deviceClient = client(broker, persistence, noopHandler);
+        final ReconnectingClient deviceClient = client(broker, persistence);
         deviceClient.connect();
         final MqttDevicePublisher publisher = new MqttDevicePublisher(deviceClient, "fromDevice");
 
-        final ReconnectingClient consumerClient = client(broker, persistence, handler, Topics.CONNECTED, Topics.DISCONNECTED, "fromDevice");
+        final ReconnectingClient consumerClient = client(broker, persistence, Topics.CONNECTED, Topics.DISCONNECTED, "fromDevice");
+        consumerClient.addHandler((topic, message) -> System.out.printf("%s: %s\n", topic, message.getPayload().length));
         consumerClient.connect();
 
         publisher.connect(MessageProtos.Connect.newBuilder().setDevice("test").addManaged("child1").build());
@@ -51,8 +49,8 @@ public class MqttDevicePublisherTest {
         consumerClient.disconnect();
     }
 
-    private ReconnectingClient client(final String broker, final MqttClientPersistence persistence, final MessageHandler handler, final String... topics) {
-        return new ReconnectingClient(broker, new MqttConnectOptions(), persistence, MqttClient.generateClientId(), handler, topics);
+    private ReconnectingClient client(final String broker, final MqttClientPersistence persistence, final String... topics) {
+        return new ReconnectingClient(broker, new MqttConnectOptions(), persistence, MqttClient.generateClientId(), topics);
     }
 
 }

@@ -1,21 +1,24 @@
 package com.bgch.edge.scaling.mqtt;
 
 import com.github.rholder.retry.*;
+import com.google.common.collect.Lists;
 import org.eclipse.paho.client.mqttv3.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
-public final class ReconnectingClient {
+final class ReconnectingClient {
 
     private final String broker;
     private final String id;
     private final MqttConnectOptions options;
     private final MqttClientPersistence persistence;
-    private final MessageHandler consumeMessage;
     private final List<String> topics;
+    private final ArrayList<MessageHandler> handlers = Lists.newArrayList();
 
     private final MqttCallback callback = new MqttCallback() {
         @Override
@@ -38,7 +41,7 @@ public final class ReconnectingClient {
 
         @Override
         public void messageArrived(final String topic, final MqttMessage mqttMessage) throws Exception {
-            consumeMessage.consume(topic, mqttMessage);
+            handlers.forEach(h -> h.consume(topic, mqttMessage));
         }
 
         @Override
@@ -48,16 +51,19 @@ public final class ReconnectingClient {
 
     private MqttAsyncClient client;
 
-    public ReconnectingClient(final String broker, final MqttConnectOptions options, final MqttClientPersistence persistence, final String id, final MessageHandler consumeMessage, final String... topics) {
+    ReconnectingClient(final String broker, final MqttConnectOptions options, final MqttClientPersistence persistence, final String id, final String... topics) {
         this.options = options;
-        this.consumeMessage = consumeMessage;
         this.broker = broker;
         this.id = id;
         this.topics = Arrays.asList(topics);
         this.persistence = persistence;
     }
 
-    public void connect() throws MqttException {
+    void addHandler(final MessageHandler handler)   {
+        handlers.add(handler);
+    }
+
+    void connect() throws MqttException {
         client = new MqttAsyncClient(broker, id, persistence);
         client.connect(options).waitForCompletion();
         client.setCallback(callback);
@@ -72,17 +78,18 @@ public final class ReconnectingClient {
         }
     }
 
-    public boolean send(final String topic, final byte[] payload, final int qos, final boolean retain) {
+    boolean send(final String topic, final byte[] payload, final int qos, final boolean retain) {
         try {
             client.publish(topic, payload, qos, retain);
             return true;
         } catch (MqttException e) {
+
             e.printStackTrace();
             return false;
         }
     }
 
-    public void disconnect() {
+    void disconnect() {
         try {
             client.disconnect();
         } catch (MqttException e) {
