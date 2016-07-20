@@ -1,5 +1,6 @@
 package com.bgch.edge.scaling.device;
 
+import com.bgch.edge.scaling.Action;
 import honeycomb.messages.MessageProtos;
 
 import java.util.List;

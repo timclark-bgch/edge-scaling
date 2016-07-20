@@ -36,7 +36,6 @@ public final class MqttConnection {
 
     private void subscribe(final String topic) {
         try {
-            System.out.printf("\nSubscribed to %s\n", topic);
             client.subscribe(topic, 0);
         } catch (MqttException e) {
             e.printStackTrace();
@@ -45,12 +44,9 @@ public final class MqttConnection {
 
     boolean connect() {
         try {
-            System.out.println("Connecting");
             client = factory.client(id);
             client.setCallback(callback);
             topics.forEach(this::subscribe);
-
-            System.out.println("Connected successfully");
 
             return true;
         } catch (MqttException e) {

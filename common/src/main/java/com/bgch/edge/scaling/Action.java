@@ -1,4 +1,4 @@
-package com.bgch.edge.scaling.device;
+package com.bgch.edge.scaling;
 
 @FunctionalInterface
 public interface Action {
