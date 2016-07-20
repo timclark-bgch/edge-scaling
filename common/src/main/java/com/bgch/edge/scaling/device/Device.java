@@ -9,18 +9,25 @@ public class Device {
     private final List<String> managed;
     private final DevicePublisher publisher;
     private final DeviceConsumer consumer;
+    private final MetricRecorder recorder;
+    private final CommandHandler handler;
 
-    public Device(final String id, final List<String> managed, final DevicePublisher publisher, final DeviceConsumer consumer) {
+    public Device(final String id, final List<String> managed, final DevicePublisher publisher, final DeviceConsumer consumer, final MetricRecorder recorder) {
         this.id = id;
         this.managed = managed;
         this.publisher = publisher;
         this.consumer = consumer;
+        this.recorder = recorder;
+
+        this.handler = command -> {
+            System.out.printf("Command received %s\n", command.getDevice());
+            this.recorder.commandReceived();
+        };
     }
 
     public void start() {
-        record(publisher.connect(MessageProtos.Connect.newBuilder().setDevice(id).addAllManaged(managed).build()),
-                connectSucceeded,
-                connectFailed);
+        doAndRecord(publisher.connect(MessageProtos.Connect.newBuilder().setDevice(id).addAllManaged(managed).build()),
+                recorder::connectSucceeded, recorder::connectFailed);
 
         consumer.registerHandler(handler);
     }
@@ -30,40 +37,20 @@ public class Device {
     }
 
     public void report() {
-        record(publisher.report(MessageProtos.Report.newBuilder().setDevice(id).setMessage("test").build()),
-                reportSucceeded, reportFailed);
-        managed.forEach(device -> {
-            record(publisher.report(MessageProtos.Report.newBuilder().setDevice(device).setMessage("test").build()), reportSucceeded, reportFailed);
-        });
+        doAndRecord(publisher.report(reportingMessage(id)), recorder::reportSucceeded, recorder::reportFailed);
+        managed.forEach(d ->
+                doAndRecord(publisher.report(reportingMessage(d)), recorder::reportSucceeded, recorder::reportFailed));
     }
 
-    private final CommandHandler handler = command -> {
-        System.out.printf("Command received %s\n", command.getDevice());
-        // TODO increment correct metric
-    };
+    private MessageProtos.Report reportingMessage(final String id) {
+        return MessageProtos.Report.newBuilder().setDevice(id).setMessage("test").build();
+    }
 
-    private void record(final boolean predicate, final Action success, final Action failure) {
+    private void doAndRecord(final boolean predicate, final Action success, final Action failure) {
         if (predicate) {
             success.execute();
         } else {
             failure.execute();
         }
     }
-
-    private Action connectSucceeded = () -> {
-        // TODO increment correct metric
-    };
-
-    private Action connectFailed = () -> {
-        // TODO increment correct metric
-    };
-
-    private Action reportSucceeded = () -> {
-        // TODO increment correct metric
-    };
-
-    private Action reportFailed = () -> {
-        // TODO increment correct metric
-    };
-
 }
