@@ -11,14 +11,14 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-final class MqttConnection {
+public final class MqttConnection {
     private final MqttConnectionFactory factory;
     private final String id;
 
     private final List<MessageHandler> handlers = Lists.newArrayList();
     private Set<String> topics = Sets.newHashSet();
 
-    MqttConnection(final MqttConnectionFactory factory, final String id) throws MqttException {
+    public MqttConnection(final MqttConnectionFactory factory, final String id) throws MqttException {
         this.factory = factory;
         this.id = id;
 
@@ -27,8 +27,8 @@ final class MqttConnection {
 
     private MqttAsyncClient client;
 
-    void addHandler(final MessageHandler handler, final String... filters) {
-        topics.addAll(Arrays.asList(filters));
+    void addHandler(final MessageHandler handler, final List<String> filters) {
+        topics.addAll(filters);
         topics.forEach(this::subscribe);
 
         handlers.add(handler);
@@ -36,6 +36,7 @@ final class MqttConnection {
 
     private void subscribe(final String topic) {
         try {
+            System.out.printf("\nSubscribed to %s\n", topic);
             client.subscribe(topic, 0);
         } catch (MqttException e) {
             e.printStackTrace();
