@@ -12,16 +12,13 @@ import honeycomb.messages.MessageProtos;
 import java.util.List;
 import java.util.Map;
 
-final class MqttPlatformConsumer implements PlatformConsumer {
-    private final MqttConnection connection;
+public final class MqttPlatformConsumer implements PlatformConsumer {
     private final List<ConnectHandler> connectHandlers = Lists.newArrayList();
     private final List<DisconnectHandler> disconnectHandlers = Lists.newArrayList();
     private final List<ReportHandler> reportHandlers = Lists.newArrayList();
     private final Map<String, MessageHandler> messageHandlers = Maps.newHashMap();
 
-    MqttPlatformConsumer(final MqttConnection connection, final String deviceTopic) {
-        this.connection = connection;
-
+    public MqttPlatformConsumer(final MqttConnection connection, final String deviceTopic) {
         messageHandlers.put(Topics.CONNECTED, (topic, message) -> {
             try {
                 final MessageProtos.Connect connect = MessageProtos.Connect.parseFrom(message.getPayload());
@@ -54,7 +51,7 @@ final class MqttPlatformConsumer implements PlatformConsumer {
             }
         };
 
-        this.connection.addHandler(handler, Lists.newArrayList(Topics.CONNECTED, Topics.DISCONNECTED, deviceTopic));
+        connection.addHandler(handler, Lists.newArrayList(Topics.CONNECTED, Topics.DISCONNECTED, deviceTopic));
     }
 
     @Override

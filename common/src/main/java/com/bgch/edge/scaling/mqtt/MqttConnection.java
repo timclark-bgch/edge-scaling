@@ -37,8 +37,7 @@ public final class MqttConnection {
     private void subscribe(final String topic) {
         try {
             client.subscribe(topic, 0);
-        } catch (MqttException e) {
-            e.printStackTrace();
+        } catch (final MqttException ignored) {
         }
     }
 
@@ -49,27 +48,26 @@ public final class MqttConnection {
             topics.forEach(this::subscribe);
 
             return true;
-        } catch (MqttException e) {
-            e.printStackTrace();
+        } catch (final MqttException e) {
+            recordError(e);
             return false;
         }
     }
 
-    void disconnect() {
+    public void disconnect() {
         try {
             client.disconnect();
-        } catch (MqttException e) {
-            e.printStackTrace();
+        } catch (final MqttException e) {
+            recordError(e);
         }
     }
 
-    boolean send(final String topic, final byte[] payload, final int qos, final boolean retain) {
+    public boolean send(final String topic, final byte[] payload, final int qos, final boolean retain) {
         try {
             client.publish(topic, payload, qos, retain);
             return true;
-        } catch (MqttException e) {
-
-            e.printStackTrace();
+        } catch (final MqttException e) {
+            recordError(e);
             return false;
         }
     }
@@ -86,7 +84,7 @@ public final class MqttConnection {
             try {
                 retryer.call(() -> connect());
             } catch (ExecutionException | RetryException e) {
-                e.printStackTrace();
+                System.err.println("Unable to connect to broker");
             }
         }
 
@@ -101,5 +99,7 @@ public final class MqttConnection {
         }
     };
 
-
+    private void recordError(final Exception e) {
+        System.err.println(e.getMessage());
+    }
 }

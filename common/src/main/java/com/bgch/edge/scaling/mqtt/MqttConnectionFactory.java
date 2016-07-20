@@ -5,12 +5,12 @@ import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
-final class MqttConnectionFactory {
+public final class MqttConnectionFactory {
     private final String broker;
     private final MqttConnectOptions options;
     private final MqttClientPersistence persistence;
 
-    MqttConnectionFactory(final String broker, final MqttConnectOptions options, final MqttClientPersistence persistence) {
+    public MqttConnectionFactory(final String broker, final MqttConnectOptions options, final MqttClientPersistence persistence) {
         this.broker = broker;
         this.options = options;
         this.persistence = persistence;
@@ -18,7 +18,7 @@ final class MqttConnectionFactory {
 
     MqttAsyncClient client(final String id) throws MqttException {
         final MqttAsyncClient client = new MqttAsyncClient(broker, id, persistence);
-        client.connect(options);
+        client.connect(options).waitForCompletion();
 
         return client;
     }

@@ -7,6 +7,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -21,6 +22,7 @@ public final class MqttPlatformTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
+    @Ignore
     @Test
     public void consumesMessages() throws IOException, MqttException, InterruptedException {
         final MqttConnection connection = new MqttConnection(factory(), MqttClient.generateClientId());
