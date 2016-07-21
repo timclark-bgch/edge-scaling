@@ -14,6 +14,9 @@ import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public final class MqttDeviceRunner {
@@ -22,6 +25,8 @@ public final class MqttDeviceRunner {
     private final List<MqttConnection> connections = Lists.newArrayList();
     private final List<Device> devices = Lists.newArrayList();
     private final DeviceRecorder recorder;
+
+    private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
 
     private MqttDeviceRunner(final String[] args)   {
         this.factory = new MqttConnectionFactory(extractBroker(args), new MqttConnectOptions(), new MqttDefaultFilePersistence("/tmp/mqtt"));
@@ -40,6 +45,9 @@ public final class MqttDeviceRunner {
         devices.addAll(connections.stream().map(c -> device(c, recorder)).collect(Collectors.toList()));
         devices.forEach(Device::start);
         devices.forEach(Device::report);
+
+        final Runnable command = () -> devices.parallelStream().forEach(Device::report);
+        executor.scheduleAtFixedRate(command, 1, 1, TimeUnit.SECONDS);
     }
 
     private Device device(final MqttConnection connection, final DeviceRecorder recorder)   {
@@ -56,6 +64,8 @@ public final class MqttDeviceRunner {
 
     private void stop() {
         System.out.println("Shutting down Mqtt device runner");
+
+        executor.shutdownNow();
         devices.forEach(Device::stop);
         connections.forEach(MqttConnection::disconnect);
     }
