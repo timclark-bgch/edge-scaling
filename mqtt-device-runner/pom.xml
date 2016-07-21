@@ -11,5 +11,12 @@
 
     <artifactId>mqtt-device-runner</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.bgch.zoo.edge.scaling</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
 </project>
