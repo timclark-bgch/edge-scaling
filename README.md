@@ -7,5 +7,7 @@ This is for edge scaling tests.
 - mqtt-platform-runner - this holds the code to simulate platform
 
 ## Work to be completed
+- [ ] Shaded Jars.
 - [ ] Metric reporting.
 - [ ] AMQP implementations.
+- [ ] Platform -> Device messaging.
