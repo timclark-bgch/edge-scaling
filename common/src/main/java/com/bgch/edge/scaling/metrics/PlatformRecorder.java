@@ -17,21 +17,19 @@ public final class PlatformRecorder implements MetricRecorder {
         final ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).convertRatesTo(TimeUnit.SECONDS).convertDurationsTo(TimeUnit.SECONDS).build();
         reporter.start(10, TimeUnit.SECONDS);
     }
+
     @Override
     public void connect() {
-//        System.out.println("C");
         connects.mark();
     }
 
     @Override
     public void disconnect() {
-//        System.out.println("D");
         disconnects.mark();
     }
 
     @Override
     public void report() {
-//        System.out.println("R");
         reports.mark();
     }
 }
