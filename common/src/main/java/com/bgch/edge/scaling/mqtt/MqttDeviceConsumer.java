@@ -14,7 +14,6 @@ public final class MqttDeviceConsumer implements DeviceConsumer {
 
     public MqttDeviceConsumer(final MqttConnection connection, final String id, final List<String> managed) {
         final MessageHandler handler = (topic, message) -> {
-            System.out.printf("MSG %s %d\n", topic, message.getPayload().length);
             handlers.forEach(h -> {
                 try {
                     h.handle(MessageProtos.Command.parseFrom(message.getPayload()));
