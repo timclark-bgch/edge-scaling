@@ -45,9 +45,10 @@ public class AmqpDevicePublisherTest {
             publisher.connect(MessageProtos.Connect.newBuilder().setDevice("test").build());
             publisher.disconnect(MessageProtos.Disconnect.newBuilder().setDevice("test").build());
             publisher.report(MessageProtos.Report.newBuilder().setDevice("test").build());
+
+            TimeUnit.SECONDS.sleep(2);
         }
 
-        TimeUnit.SECONDS.sleep(2);
 
         assertThat(connected.get()).isEqualTo(1);
         assertThat(disconnected.get()).isEqualTo(1);
