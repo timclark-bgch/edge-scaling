@@ -1,5 +1,6 @@
 package com.bgch.edge.scaling.amqp;
 
 final class Exchanges {
-    public static final String DIRECT = "direct";
+    static final String FROM_DEVICE = "fromDevice";
+    static final String FROM_PLATFORM = "fromPlatform";
 }

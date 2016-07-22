@@ -28,13 +28,13 @@ public class AmqpDevicePublisherTest {
         final AtomicInteger report = new AtomicInteger(0);
         if (connection != null) {
             final Channel channel = connection.createChannel();
-            channel.exchangeDeclare(Exchanges.DIRECT, "direct", true);
+            channel.exchangeDeclare(Exchanges.FROM_DEVICE, "direct", true);
             channel.queueDeclare(Queues.CONNECTED, true, false, false, Collections.emptyMap());
             channel.queueDeclare(Queues.DISCONNECTED, true, false, false, Collections.emptyMap());
             channel.queueDeclare(Queues.REPORT, true, false, false, Collections.emptyMap());
-            channel.queueBind(Queues.CONNECTED, Exchanges.DIRECT, Queues.CONNECTED);
-            channel.queueBind(Queues.DISCONNECTED, Exchanges.DIRECT, Queues.DISCONNECTED);
-            channel.queueBind(Queues.REPORT, Exchanges.DIRECT, Queues.REPORT);
+            channel.queueBind(Queues.CONNECTED, Exchanges.FROM_DEVICE, Queues.CONNECTED);
+            channel.queueBind(Queues.DISCONNECTED, Exchanges.FROM_DEVICE, Queues.DISCONNECTED);
+            channel.queueBind(Queues.REPORT, Exchanges.FROM_DEVICE, Queues.REPORT);
 
             addConsumer(channel, Queues.CONNECTED, connected);
             addConsumer(channel, Queues.DISCONNECTED, disconnected);

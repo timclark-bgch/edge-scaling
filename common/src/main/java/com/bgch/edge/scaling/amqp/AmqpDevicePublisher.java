@@ -14,7 +14,7 @@ public final class AmqpDevicePublisher implements DevicePublisher {
     public AmqpDevicePublisher(final Connection connection) throws IOException {
         this.channel = connection.createChannel();
 
-        channel.exchangeDeclare(Exchanges.DIRECT, "direct", true);
+        channel.exchangeDeclare(Exchanges.FROM_DEVICE, "direct", true);
         channel.queueDeclare(Queues.CONNECTED, true, false, false, Collections.emptyMap());
         channel.queueDeclare(Queues.DISCONNECTED, true, false, false, Collections.emptyMap());
         channel.queueDeclare(Queues.REPORT, true, false, false, Collections.emptyMap());
@@ -38,7 +38,7 @@ public final class AmqpDevicePublisher implements DevicePublisher {
     private boolean publish(final String routingKey, final byte[] payload) {
         try {
             synchronized (channel) {
-                channel.basicPublish(Exchanges.DIRECT, routingKey, null, payload);
+                channel.basicPublish(Exchanges.FROM_DEVICE, routingKey, null, payload);
             }
             return true;
         } catch (IOException e) {
