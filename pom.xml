@@ -12,6 +12,7 @@
         <module>common</module>
         <module>mqtt-device-runner</module>
         <module>mqtt-platform-runner</module>
+        <module>amqp-device-runner</module>
     </modules>
 
     <properties>
