@@ -13,6 +13,7 @@
         <module>mqtt-device-runner</module>
         <module>mqtt-platform-runner</module>
         <module>amqp-device-runner</module>
+        <module>amqp-platform-runner</module>
     </modules>
 
     <properties>
