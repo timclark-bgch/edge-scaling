@@ -24,13 +24,13 @@ public final class AmqpDeviceRunner {
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
 
-    private AmqpDeviceRunner(final String[] args)   {
+    private AmqpDeviceRunner(final String[] args) {
         final int runners = extractRunnerCount(args);
         final Connection connection = connection(extractBroker(args));
         final DeviceRecorder recorder = new DeviceRecorder();
-        for(int i = 0; i < runners; i++)    {
+        for (int i = 0; i < runners; i++) {
             try {
-                devices.add(device(connection, recorder));
+                devices.add(device(connection, recorder, extractMessageSize(args)));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -39,15 +39,15 @@ public final class AmqpDeviceRunner {
         System.out.printf("AmqpDeviceRunner created: Running %d runners, Broker at %s, Reporting to %s\n", runners, extractBroker(args), extractReportingServer(args));
     }
 
-    private Device device(final Connection connection, final DeviceRecorder recorder) throws IOException {
+    private Device device(final Connection connection, final DeviceRecorder recorder, final int messageSize) throws IOException {
         final String id = UUID.randomUUID().toString();
         final List<String> managed = Lists.newArrayList();
-        for(int i = 0; i < 10; i++) {
+        for (int i = 0; i < 10; i++) {
             managed.add(UUID.randomUUID().toString());
         }
         final AmqpDevicePublisher publisher = new AmqpDevicePublisher(connection);
         final AmqpDeviceConsumer consumer = new AmqpDeviceConsumer(connection, managed);
-        return new Device(id, managed, publisher, consumer, recorder);
+        return new Device(id, managed, publisher, consumer, recorder, messageSize);
     }
 
     private String extractBroker(final String[] args) {
@@ -74,6 +74,17 @@ public final class AmqpDeviceRunner {
         return "unknown";
     }
 
+    private int extractMessageSize(final String[] args) {
+        if (args.length > 3) {
+            try {
+                return Integer.parseInt(args[3]);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        return 100;
+    }
+
     private Connection connection(final String broker) {
         final ConnectionFactory factory = new ConnectionFactory();
 
@@ -87,7 +98,7 @@ public final class AmqpDeviceRunner {
         return null;
     }
 
-    private void start()    {
+    private void start() {
         System.out.println("Running Amqp device runner");
 
         devices.forEach(Device::start);
@@ -103,7 +114,7 @@ public final class AmqpDeviceRunner {
         devices.forEach(Device::stop);
     }
 
-    public static void main(final String[] args)    {
+    public static void main(final String[] args) {
         final AmqpDeviceRunner runner = new AmqpDeviceRunner(args);
         runner.start();
 

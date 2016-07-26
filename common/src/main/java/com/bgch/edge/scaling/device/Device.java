@@ -4,6 +4,7 @@ import com.bgch.edge.scaling.Action;
 import honeycomb.messages.MessageProtos;
 
 import java.util.List;
+import java.util.UUID;
 
 public class Device {
     private final String id;
@@ -13,17 +14,28 @@ public class Device {
     private final MetricRecorder recorder;
     private final CommandHandler handler;
 
-    public Device(final String id, final List<String> managed, final DevicePublisher publisher, final DeviceConsumer consumer, final MetricRecorder recorder) {
+    private final String payload;
+
+    public Device(final String id, final List<String> managed, final DevicePublisher publisher, final DeviceConsumer consumer, final MetricRecorder recorder, final int payloadSize) {
         this.id = id;
         this.managed = managed;
         this.publisher = publisher;
         this.consumer = consumer;
         this.recorder = recorder;
 
-        this.handler = command -> {
-            System.out.printf("Command received %s\n", command.getDevice());
-            this.recorder.commandReceived();
-        };
+        this.handler = command -> this.recorder.commandReceived();
+
+        this.payload = payload(payloadSize);
+        System.out.println(payload);
+    }
+
+    private String payload(final int payloadSize) {
+        final StringBuilder builder = new StringBuilder(payloadSize);
+        final String seed = UUID.randomUUID().toString();
+        for(int i = 0; i <  builder.capacity(); i++)    {
+            builder.append(seed.charAt(i % seed.length()));
+        }
+        return builder.toString();
     }
 
     public void start() {
@@ -44,7 +56,7 @@ public class Device {
     }
 
     private MessageProtos.Report reportingMessage(final String id) {
-        return MessageProtos.Report.newBuilder().setDevice(id).setMessage("test").build();
+        return MessageProtos.Report.newBuilder().setDevice(id).setMessage(payload).build();
     }
 
     private void doAndRecord(final boolean predicate, final Action success, final Action failure) {

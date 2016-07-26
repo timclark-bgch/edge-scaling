@@ -35,7 +35,7 @@ public final class MqttDeviceTest {
         final MqttDeviceConsumer consumer = new MqttDeviceConsumer(connection, id, managed);
 
         final TestRecorder recorder = new TestRecorder();
-        final Device device = new Device(id, managed, publisher, consumer, recorder);
+        final Device device = new Device(id, managed, publisher, consumer, recorder, 100);
         device.start();
 
         final MessageProtos.Command command = MessageProtos.Command.newBuilder().setDevice("test").build();

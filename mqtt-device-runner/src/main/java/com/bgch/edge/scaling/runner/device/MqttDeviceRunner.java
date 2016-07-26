@@ -25,6 +25,7 @@ public final class MqttDeviceRunner {
     private final List<MqttConnection> connections = Lists.newArrayList();
     private final List<Device> devices = Lists.newArrayList();
     private final DeviceRecorder recorder;
+    private final int messageSize;
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
 
@@ -33,6 +34,7 @@ public final class MqttDeviceRunner {
         this.runners = extractRunnerCount(args);
         this.recorder = new DeviceRecorder();
 
+        this.messageSize = extractMessageSize(args);
         System.out.printf("MqttDeviceRunner created: Running %d runners, Broker at %s, Reporting to %s\n", runners, extractBroker(args), extractReportingServer(args));
     }
 
@@ -42,7 +44,7 @@ public final class MqttDeviceRunner {
             connections.add(new MqttConnection(factory, MqttClient.generateClientId()));
         }
 
-        devices.addAll(connections.stream().map(c -> device(c, recorder)).collect(Collectors.toList()));
+        devices.addAll(connections.stream().map(c -> device(c, recorder, messageSize)).collect(Collectors.toList()));
         devices.forEach(Device::start);
         devices.forEach(Device::report);
 
@@ -50,7 +52,7 @@ public final class MqttDeviceRunner {
         executor.scheduleAtFixedRate(command, 1, 1, TimeUnit.SECONDS);
     }
 
-    private Device device(final MqttConnection connection, final DeviceRecorder recorder)   {
+    private Device device(final MqttConnection connection, final DeviceRecorder recorder, final int messageSize)   {
         final String id = UUID.randomUUID().toString();
         final List<String> managed = Lists.newArrayList();
         for(int i = 0; i < 10; i++) {
@@ -59,7 +61,7 @@ public final class MqttDeviceRunner {
 
         final MqttDevicePublisher publisher = new MqttDevicePublisher(connection, "fromDevice");
         final MqttDeviceConsumer consumer = new MqttDeviceConsumer(connection, id, managed);
-        return new Device(id, managed, publisher, consumer, recorder);
+        return new Device(id, managed, publisher, consumer, recorder, messageSize);
     }
 
     private void stop() {
@@ -92,6 +94,17 @@ public final class MqttDeviceRunner {
             return args[2];
         }
         return "unknown";
+    }
+
+    private int extractMessageSize(final String[] args) {
+        if (args.length > 3) {
+            try {
+                return Integer.parseInt(args[3]);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        return 100;
     }
 
     public static void main(final String[] args) throws MqttException {
