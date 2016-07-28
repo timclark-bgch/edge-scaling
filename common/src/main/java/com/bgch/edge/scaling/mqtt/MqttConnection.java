@@ -1,14 +1,13 @@
 package com.bgch.edge.scaling.mqtt;
 
-import com.github.rholder.retry.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.paho.client.mqttv3.*;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public final class MqttConnection {
@@ -41,7 +40,7 @@ public final class MqttConnection {
         }
     }
 
-    boolean connect() {
+    private boolean connect() {
         try {
             client = factory.client(id);
             client.setCallback(callback);
@@ -62,12 +61,11 @@ public final class MqttConnection {
         }
     }
 
-    public boolean send(final String topic, final byte[] payload, final int qos, final boolean retain) {
+    boolean send(final String topic, final byte[] payload, final int qos, final boolean retain) {
         try {
             client.publish(topic, payload, qos, retain);
             return true;
         } catch (final MqttException e) {
-            recordError(e);
             return false;
         }
     }
@@ -75,17 +73,14 @@ public final class MqttConnection {
     private final MqttCallback callback = new MqttCallback() {
         @Override
         public void connectionLost(final Throwable throwable) {
-            final Retryer<Boolean> retryer = RetryerBuilder.<Boolean>newBuilder()
-                    .retryIfResult(v -> v != null && !v)
-                    .withWaitStrategy(WaitStrategies.exponentialWait())
-                    .withStopStrategy(StopStrategies.stopAfterDelay(30, TimeUnit.SECONDS))
-                    .build();
+            final RetryPolicy retryPolicy = new RetryPolicy()
+                    .retryWhen(false)
+                    .withBackoff(1, 30, TimeUnit.SECONDS)
+                    .withJitter(0.2)
+                    .withMaxDuration(30, TimeUnit.SECONDS);
 
-            try {
-                retryer.call(() -> connect());
-            } catch (ExecutionException | RetryException e) {
-                System.err.println("Unable to connect to broker");
-            }
+
+            Failsafe.with(retryPolicy).get(() -> connect());
         }
 
         @Override

@@ -26,7 +26,6 @@ public class Device {
         this.handler = command -> this.recorder.commandReceived();
 
         this.payload = payload(payloadSize);
-        System.out.println(payload);
     }
 
     private String payload(final int payloadSize) {
